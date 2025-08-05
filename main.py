@@ -23,8 +23,7 @@ async def run(playwright):
     await page.get_by_role("button", name=" ログイン").click()
 
     # サイドメニューを開く
-    await page.wait_for_selector(".sc-evzXkX", timeout=10000)
-    await page.click(".sc-evzXkX")
+    await page.get_by_text("システム").hover()
 
     # 「閉じる」があれば閉じる
     try:
