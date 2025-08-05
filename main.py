@@ -5,6 +5,10 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from playwright.async_api import async_playwright
 
+creds_base64 = os.environ["GOOGLE_CREDS_BASE64"]
+with open("credentials.json", "wb") as f:
+    f.write(base64.b64decode(creds_base64))
+
 LOGIN_ID = os.getenv("LOGIN_ID")
 LOGIN_PASSWORD = os.getenv("LOGIN_PASSWORD")
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
