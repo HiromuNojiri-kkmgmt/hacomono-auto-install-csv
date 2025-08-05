@@ -23,7 +23,7 @@ async def run(playwright):
     await page.get_by_role("button", name=" ログイン").click()
 
     # サイドメニューを開く
-    await page.get_by_text("システム").hover()
+    await page.locator("a").filter(has_text="システム").click()
 
     # 「閉じる」があれば閉じる
     try:
