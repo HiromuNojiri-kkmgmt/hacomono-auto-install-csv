@@ -2,6 +2,7 @@ services:
   - type: web
     name: csv-to-sheets
     env: python
+    pythonVersion: 3.10.13
     buildCommand: pip install -r requirements.txt && playwright install --with-deps
     startCommand: bash start.sh
     envVars:
