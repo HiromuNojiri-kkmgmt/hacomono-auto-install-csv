@@ -3,6 +3,7 @@ import base64
 import asyncio
 import pandas as pd
 import gspread
+import numpy as np
 from oauth2client.service_account import ServiceAccountCredentials
 from playwright.async_api import async_playwright
 
@@ -57,8 +58,14 @@ async def run(playwright):
     file_path = await download.path()
     print(f"Downloaded CSV: {file_path}")
 
-    # Google Sheets にアップロード
+    # CSVを読み込み
     df = pd.read_csv(file_path, encoding="utf-8")
+    
+    # NaN や ±inf を空文字に変換（Google Sheetsに適した形）
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    df.fillna("", inplace=True)
+    
+    # Google Sheets APIでアップロード
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     client = gspread.authorize(creds)
@@ -68,7 +75,7 @@ async def run(playwright):
 
     await context.close()
     await browser.close()
-    print("✅ 処理完了しました！")
+    print("処理完了しました！")
 
 async def main():
     async with async_playwright() as playwright:
