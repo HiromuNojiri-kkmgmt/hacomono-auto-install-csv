@@ -22,18 +22,14 @@ async def run(playwright):
     await page.fill('input[type="password"]', LOGIN_PASSWORD)
     await page.get_by_role("button", name=" ログイン").click()
 
-    # サイドメニューを開く
-    await page.locator("a").filter(has_text="システム").click()
-
     # 「閉じる」があれば閉じる
     try:
         await page.get_by_role("button", name="閉じる").click()
     except:
         pass  # なければ無視してOK
 
-    # データ集計 → メンバー一覧
-    await page.locator('a[href="#/analysis/queries/"]').wait_for(state="visible", timeout=30000)
-    await page.locator('a[href="#/analysis/queries/"]').click()
+    # ログイン完了後に直接「データ集計」に遷移
+    await page.goto("https://yuzupilates-admin.hacomono.jp/#/analysis/queries/")
     await page.get_by_role("link", name="メンバー一覧", exact=True).wait_for(state="visible")
     await page.get_by_role("link", name="メンバー一覧", exact=True).click()
 
