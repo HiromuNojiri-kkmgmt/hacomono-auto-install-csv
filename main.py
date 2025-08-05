@@ -1,10 +1,9 @@
 import os
-import time
 import asyncio
 import pandas as pd
-from playwright.async_api import async_playwright
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from playwright.async_api import async_playwright
 
 LOGIN_ID = os.getenv("LOGIN_ID")
 LOGIN_PASSWORD = os.getenv("LOGIN_PASSWORD")
@@ -16,41 +15,54 @@ async def run(playwright):
     context = await browser.new_context(accept_downloads=True)
     page = await context.new_page()
 
-    print("Logging in...")
-    await page.goto("https://YOUR_ADMIN_URL/login")  # ←管理画面URLに書き換えてください
-    await page.fill('input[type="email"]', LOGIN_ID)
-    await page.fill('input[type="password"]', LOGIN_PASSWORD)
-    await page.click('button[type="submit"]')
-    await page.wait_for_load_state("networkidle")
-    
-    print("Navigating to export page...")
-    await page.goto("https://YOUR_ADMIN_URL/customers")  # ←顧客一覧ページに書き換えてください
-    await page.wait_for_load_state("networkidle")
+    await page.goto("https://yuzupilates-admin.hacomono.jp/#/auth/")
 
-    print("Waiting for export button...")
-    export_button = await page.wait_for_selector('button:has-text("エクスポート")')
+    # ログイン
+    await page.fill('input[type="text"]', LOGIN_ID)
+    await page.fill('input[type="password"]', LOGIN_PASSWORD)
+    await page.get_by_role("button", name=" ログイン").click()
+
+    # サイドメニューを開く
+    await page.wait_for_selector(".sc-evzXkX", timeout=10000)
+    await page.click(".sc-evzXkX")
+
+    # 「閉じる」があれば閉じる
+    try:
+        await page.get_by_role("button", name="閉じる").click()
+    except:
+        pass  # なければ無視してOK
+
+    # データ集計 → メンバー一覧
+    await page.get_by_role("link", name="データ集計").click()
+    await page.get_by_role("link", name="メンバー一覧", exact=True).click()
+
+    # 店舗選択（飯田橋店）
+    await page.get_by_text("飯田橋店").click()
+    await page.locator("a").filter(has_text="S0028 飯田橋店").click()
+
+    # 検索 → エクスポート
+    await page.get_by_role("button", name=" 検索").click()
+    await page.get_by_role("button", name=" エクスポート").click()
+
+    # ダウンロード取得
     async with page.expect_download() as download_info:
-        await export_button.click()
+        await page.get_by_role("button", name=" ダウンロード").click()
     download = await download_info.value
     file_path = await download.path()
-    file_name = download.suggested_filename
-    print(f"Downloaded: {file_name}")
+    print(f"Downloaded CSV: {file_path}")
 
-    # CSV読み込み
+    # Google Sheets にアップロード
     df = pd.read_csv(file_path, encoding="utf-8")
-
-    # Google Sheetsへアップロード
-    print("Uploading to Google Sheets...")
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     client = gspread.authorize(creds)
     sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
     sheet.clear()
     sheet.update([df.columns.values.tolist()] + df.values.tolist())
-    print("Upload complete.")
 
     await context.close()
     await browser.close()
+    print("✅ 処理完了しました！")
 
 async def main():
     async with async_playwright() as playwright:
