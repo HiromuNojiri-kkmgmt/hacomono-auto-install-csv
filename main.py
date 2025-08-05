@@ -1,4 +1,5 @@
 import os
+import base64
 import asyncio
 import pandas as pd
 import gspread
