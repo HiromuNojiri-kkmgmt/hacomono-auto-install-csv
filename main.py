@@ -32,20 +32,26 @@ async def run(playwright):
         pass  # なければ無視してOK
 
     # データ集計 → メンバー一覧
-    await page.get_by_role("link", name="データ集計").click()
+    await page.get_by_text("データ集計", exact=True).wait_for(state="visible")
+    await page.get_by_text("データ集計", exact=True).click()
+    await page.get_by_role("link", name="メンバー一覧", exact=True).wait_for(state="visible")
     await page.get_by_role("link", name="メンバー一覧", exact=True).click()
 
     # 店舗選択（飯田橋店）
+    await page.get_by_text("飯田橋店").wait_for(state="visible")
     await page.get_by_text("飯田橋店").click()
+    await page.locator("a").filter(has_text="S0028 飯田橋店").wait_for(state="visible")
     await page.locator("a").filter(has_text="S0028 飯田橋店").click()
 
     # 検索 → エクスポート
-    await page.get_by_role("button", name=" 検索").click()
-    await page.get_by_role("button", name=" エクスポート").click()
+    await page.get_by_role("button", name="検索").wait_for(state="visible")
+    await page.get_by_role("button", name="検索").click()
+    await page.get_by_role("button", name="エクスポート").wait_for(state="visible")
+    await page.get_by_role("button", name="エクスポート").click()
 
     # ダウンロード取得
     async with page.expect_download() as download_info:
-        await page.get_by_role("button", name=" ダウンロード").click()
+        await page.get_by_role("button", name="ダウンロード").click()
     download = await download_info.value
     file_path = await download.path()
     print(f"Downloaded CSV: {file_path}")
