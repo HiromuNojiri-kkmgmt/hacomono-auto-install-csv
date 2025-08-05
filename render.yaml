@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: csv-to-sheets
+    env: python
+    buildCommand: pip install -r requirements.txt && playwright install --with-deps
+    startCommand: bash start.sh
+    envVars:
+      - key: LOGIN_ID
+        sync: false
+      - key: LOGIN_PASSWORD
+        sync: false
+      - key: SPREADSHEET_ID
+        sync: false
+      - key: SHEET_NAME
+        sync: false
