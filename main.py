@@ -32,8 +32,8 @@ async def run(playwright):
         pass  # なければ無視してOK
 
     # データ集計 → メンバー一覧
-    await page.get_by_text("データ集計", exact=True).wait_for(state="visible")
-    await page.get_by_text("データ集計", exact=True).click()
+    await page.locator('a[href="#/analysis/queries/"]').wait_for(state="visible", timeout=30000)
+    await page.locator('a[href="#/analysis/queries/"]').click()
     await page.get_by_role("link", name="メンバー一覧", exact=True).wait_for(state="visible")
     await page.get_by_role("link", name="メンバー一覧", exact=True).click()
 
